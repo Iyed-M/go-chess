@@ -1,13 +1,13 @@
 package pieces
 
 import (
-	"github.com/Iyed-M/go-chess/internal/chess/types"
+	"github.com/Iyed-M/go-chess/internal/chess/cells"
 )
 
 type Piece interface {
-	Position() types.Cell
-	Move(newPosition types.Cell)
-	PossibleMoves() []types.Cell
+	Position() cells.Cell
+	Move(newPosition cells.Cell)
+	PossibleMoves() []cells.Cell
 	Name() Name
 	IsWhite() bool
 }
@@ -71,7 +71,7 @@ func (ps Pieces) Pawns() []Piece {
 	return ps[8:]
 }
 
-func (ps Pieces) FindPieceByPosition(pos types.Cell) Piece {
+func (ps Pieces) FindPieceByPosition(pos cells.Cell) Piece {
 	for _, p := range ps {
 		if p.Position() == pos {
 			return p

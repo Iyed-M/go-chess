@@ -3,28 +3,27 @@ package pieces
 import (
 	"fmt"
 
-	"github.com/Iyed-M/go-chess/internal/chess/types"
-	"github.com/Iyed-M/go-chess/internal/chess/utils"
+	"github.com/Iyed-M/go-chess/internal/chess/cells"
 )
 
 type Knight struct {
 	*basePiece
 }
 
-func (kn Knight) PossibleMoves() []types.Cell {
+func (kn Knight) PossibleMoves() []cells.Cell {
 	c := kn.basePiece.position
-	if !utils.CheckInBoardRange(c) {
+	if !cells.CheckInBoardRange(c) {
 		panic(fmt.Sprintf("bishop in invalid cell : %s", c.String()))
 	}
-	moves := []types.Cell{}
-	moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: c.X + 1, Y: c.Y + 2})
-	moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: c.X + 1, Y: c.Y - 2})
-	moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: c.X + 2, Y: c.Y + 1})
-	moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: c.X + 2, Y: c.Y - 1})
-	moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: c.X - 1, Y: c.Y + 2})
-	moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: c.X - 1, Y: c.Y - 2})
-	moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: c.X - 2, Y: c.Y + 1})
-	moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: c.X - 2, Y: c.Y - 1})
+	moves := []cells.Cell{}
+	moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: c.X + 1, Y: c.Y + 2})
+	moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: c.X + 1, Y: c.Y - 2})
+	moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: c.X + 2, Y: c.Y + 1})
+	moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: c.X + 2, Y: c.Y - 1})
+	moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: c.X - 1, Y: c.Y + 2})
+	moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: c.X - 1, Y: c.Y - 2})
+	moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: c.X - 2, Y: c.Y + 1})
+	moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: c.X - 2, Y: c.Y - 1})
 	return moves
 }
 

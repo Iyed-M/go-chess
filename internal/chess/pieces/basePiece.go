@@ -1,25 +1,25 @@
 package pieces
 
-import "github.com/Iyed-M/go-chess/internal/chess/types"
+import "github.com/Iyed-M/go-chess/internal/chess/cells"
 
 type basePiece struct {
-	position types.Cell
+	position cells.Cell
 	isWhite  bool
 }
 
-func (bp *basePiece) Position() types.Cell {
+func (bp *basePiece) Position() cells.Cell {
 	return bp.position
 }
 
 func NewBasePiece(x, y int8, isWhite bool) *basePiece {
-	return &basePiece{position: types.Cell{X: x, Y: y}, isWhite: isWhite}
+	return &basePiece{position: cells.Cell{X: x, Y: y}, isWhite: isWhite}
 }
 
 func (bp *basePiece) IsWhite() bool {
 	return bp.isWhite
 }
 
-func (bp *basePiece) Move(newPosition types.Cell) {
+func (bp *basePiece) Move(newPosition cells.Cell) {
 	newPosition.MustBeInBoard()
 	bp.position = newPosition
 }

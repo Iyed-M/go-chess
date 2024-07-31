@@ -3,24 +3,23 @@ package pieces
 import (
 	"fmt"
 
-	"github.com/Iyed-M/go-chess/internal/chess/types"
-	"github.com/Iyed-M/go-chess/internal/chess/utils"
+	"github.com/Iyed-M/go-chess/internal/chess/cells"
 )
 
 type Pawn struct {
 	*basePiece
 }
 
-func (p Pawn) PossibleMoves() []types.Cell {
+func (p Pawn) PossibleMoves() []cells.Cell {
 	c := p.position
-	if !utils.CheckInBoardRange(c) {
+	if !cells.CheckInBoardRange(c) {
 		panic(fmt.Sprintf("pawn in invalid cell : %s", c.String()))
 	}
-	moves := make([]types.Cell, 0, 14)
+	moves := make([]cells.Cell, 0, 14)
 	for idx := range 8 {
 		i := int8(idx)
-		moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: i, Y: c.Y})
-		moves, _ = utils.AppendCellInBoardRange(moves, types.Cell{X: c.X, Y: i})
+		moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: i, Y: c.Y})
+		moves, _ = cells.AppendCellInBoardRange(moves, cells.Cell{X: c.X, Y: i})
 	}
 	return moves
 }
