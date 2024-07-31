@@ -13,10 +13,11 @@ type GameConfig struct {
 	blackName string
 }
 
-func startGame(cfg GameConfig) *game {
+func StartGame(cfg GameConfig) *game {
 	g := &game{
 		whiteName: "Player White",
 		blackName: "Player Black",
+		state:     state.InitState(),
 	}
 	if cfg.blackName != "" {
 		g.blackName = cfg.blackName
@@ -25,6 +26,6 @@ func startGame(cfg GameConfig) *game {
 	if cfg.whiteName != "" {
 		g.whiteName = cfg.whiteName
 	}
-
+	g.state.PrintBoard()
 	return g
 }

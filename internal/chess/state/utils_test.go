@@ -1,22 +1,144 @@
 package state
 
 import (
-	"slices"
+	"fmt"
 	"testing"
 
+	"github.com/Iyed-M/go-chess/internal/chess/cells"
 	"github.com/Iyed-M/go-chess/internal/chess/pieces"
-	"github.com/Iyed-M/go-chess/internal/chess/types"
 )
 
-type _PieceTest struct {
-	pos types.Cell
+func Test_firstPiece(t *testing.T) {
+	newPieceTest := func(pos cells.Cell) pieces.Piece {
+		return _PieceTest{pos: pos}
+	}
+	newCell := func(x, y int8) cells.Cell {
+		return cells.Cell{X: x, Y: y}
+	}
+	type args struct {
+		board [][]pieces.Piece
+	}
+	tests := []struct {
+		name         string
+		start        cells.Cell
+		end          cells.Cell
+		addPieces    []cells.Cell
+		wantPieceNil bool
+		wantPos      cells.Cell
+		wantErr      bool
+	}{
+		{
+			name:      "vertical",
+			start:     newCell(3, 3),
+			end:       newCell(3, 6),
+			addPieces: []cells.Cell{newCell(3, 5), newCell(3, 4)},
+			wantPos:   newCell(3, 4),
+		},
+		{
+			name:         "no pieces between",
+			start:        newCell(3, 3),
+			end:          newCell(3, 6),
+			addPieces:    []cells.Cell{},
+			wantPieceNil: true,
+			wantErr:      false,
+		},
+		{
+			name:      "horizontal",
+			start:     newCell(0, 6),
+			end:       newCell(7, 6),
+			addPieces: []cells.Cell{newCell(3, 6), newCell(5, 4), newCell(4, 6), newCell(7, 7), newCell(7, 6)},
+			wantPos:   newCell(3, 6),
+			wantErr:   false,
+		},
+		{
+			name:      "up right",
+			start:     newCell(1, 3),
+			end:       newCell(4, 6),
+			addPieces: []cells.Cell{newCell(5, 7), newCell(2, 4), newCell(3, 5), newCell(7, 7), newCell(7, 6)},
+			wantPos:   newCell(2, 4),
+			wantErr:   false,
+		},
+		{
+			name:      "down right",
+			start:     newCell(4, 6),
+			end:       newCell(1, 3),
+			addPieces: []cells.Cell{newCell(5, 7), newCell(2, 4), newCell(3, 5), newCell(7, 7), newCell(7, 6)},
+			wantPos:   newCell(3, 5),
+			wantErr:   false,
+		},
+		{
+			name:      "same cell must error",
+			start:     newCell(4, 6),
+			end:       newCell(4, 6),
+			addPieces: []cells.Cell{newCell(5, 7), newCell(2, 4), newCell(3, 5), newCell(7, 7), newCell(7, 6)},
+			wantErr:   true,
+		},
+		{
+			name:      "cells not aligned must error",
+			start:     newCell(4, 6),
+			end:       newCell(1, 0),
+			addPieces: []cells.Cell{newCell(5, 7), newCell(2, 4), newCell(3, 5), newCell(7, 7), newCell(7, 6)},
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			board := make([][]pieces.Piece, 8)
+			for i := range board {
+				board[i] = make([]pieces.Piece, 8)
+			}
+			for _, c := range tt.addPieces {
+				board[c.X][c.Y] = newPieceTest(c)
+			}
+			board[tt.start.X][tt.start.Y] = newPieceTest(tt.start)
+			board[tt.end.X][tt.end.Y] = newPieceTest(tt.end)
+			got, err := firstPiece(tt.start, tt.end, board)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("firstPiece() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+			if tt.wantPieceNil {
+				if got != nil {
+					t.Fatalf("firstPiece() [expected piece to be nil]=%v , [got_piece is null?]=%v", tt.wantPieceNil, got == nil)
+				}
+				return
+			}
+			if !got.Position().Equal(tt.wantPos) {
+				t.Fatalf("firstPiece() = %v, want %v", got.Position().String(), tt.wantPos)
+			}
+		})
+	}
 }
 
-func (p _PieceTest) Position() types.Cell {
+func printBoard(b [][]pieces.Piece) {
+	for _, row := range b {
+		fmt.Printf("|")
+		for _, ps := range row {
+			if ps == nil {
+				fmt.Printf("  |")
+			} else {
+				fmt.Printf("%s|", ps.Name()[:2])
+			}
+		}
+		fmt.Printf("\n-------------------------\n")
+	}
+}
+
+type _PieceTest struct {
+	pos cells.Cell
+}
+
+func _newPieceTest(x, y uint8) _PieceTest {
+	return _PieceTest{pos: cells.Cell{X: int8(x), Y: int8(y)}}
+}
+
+func (p _PieceTest) Position() cells.Cell {
 	return p.pos
 }
 
-func (p _PieceTest) PossibleMoves() []types.Cell {
+func (p _PieceTest) PossibleMoves() []cells.Cell {
 	return nil
 }
 
@@ -24,87 +146,17 @@ func (p _PieceTest) IsWhite() bool {
 	return false
 }
 
-func (_PieceTest) Move(newPosition types.Cell) {
+func (p _PieceTest) Move(newPosition cells.Cell) {
 }
 
-func (_PieceTest) Name() (_ pieces.Name) {
-	panic("implement me")
+func (_PieceTest) Name() pieces.Name {
+	return "TP"
 }
 
-func FakeStateFromCells(cells [][2]int) *State {
-	s := initState()
-	for _, c := range cells {
-		s.white.pieces = append(s.white.pieces, _PieceTest{pos: types.Cell{X: int8(c[0]), Y: int8(c[1])}})
+func FakeStateFromCells(positions [][2]int) *State {
+	s := InitState()
+	for _, c := range positions {
+		s.cacheWhite.pieces = append(s.cacheWhite.pieces, _PieceTest{pos: cells.Cell{X: int8(c[0]), Y: int8(c[1])}})
 	}
 	return s
-}
-
-func TestState_GetPiecesBetween(t *testing.T) {
-	FakeStateFromCells([][2]int{{1, 2}, {}})
-	type args struct {
-		x1 int8
-		y1 int8
-		x2 int8
-		y2 int8
-	}
-	tests := []struct {
-		name    string
-		s       *State
-		args    args
-		want    []types.Cell
-		wantErr bool
-	}{
-		{
-			s:       FakeStateFromCells([][2]int{{1, 2}}),
-			wantErr: false,
-			name:    "horizontal 0",
-			args:    args{x1: 1, y1: 1, x2: 1, y2: 3},
-			want:    []types.Cell{{X: 1, Y: 2}},
-		},
-		{
-			s:       FakeStateFromCells([][2]int{}),
-			wantErr: false,
-			name:    "horizontal 1",
-			args:    args{x1: 1, y1: 1, x2: 1, y2: 3},
-			want:    []types.Cell{},
-		},
-		{
-			s:       FakeStateFromCells([][2]int{{5, 7}, {6, 7}}),
-			wantErr: false,
-			name:    "vertical",
-			args:    args{x1: 7, y1: 7, x2: 4, y2: 7},
-			want:    []types.Cell{{X: 5, Y: 7}, {X: 6, Y: 7}},
-		},
-		{
-			wantErr: false,
-			name:    "diag",
-			args:    args{x1: 1, y1: 2, x2: 4, y2: 5},
-			want:    []types.Cell{{X: 2, Y: 3}, {X: 3, Y: 4}},
-		},
-		{
-			wantErr: true,
-			name:    "non aligned",
-			args:    args{x1: 1, y1: 2, x2: 4, y2: 3},
-			want:    []types.Cell{},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.s.GetPiecesBetween(types.Cell{X: tt.args.x1, Y: tt.args.y1}, types.Cell{X: tt.args.x2, Y: tt.args.y2})
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetCellBetween() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if len(got) != len(tt.want) {
-				t.Errorf("GetCellBetween() = %v, want %v", got, tt.want)
-				return
-			}
-			for _, c := range got {
-				if !slices.Contains(tt.want, c.Position()) {
-					t.Errorf("GetCellBetween() = %v, want %v", got, tt.want)
-					return
-				}
-			}
-		})
-	}
 }

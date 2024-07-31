@@ -3,57 +3,50 @@ package state
 import (
 	"fmt"
 
+	"github.com/Iyed-M/go-chess/internal/chess/cells"
 	"github.com/Iyed-M/go-chess/internal/chess/pieces"
-	"github.com/Iyed-M/go-chess/internal/chess/types"
 )
 
-// error is returned if the cells are not on the same line (horizontal or  vertical or diagonal)
-func (s State) GetPiecesBetween(from, to types.Cell) ([]pieces.Piece, error) {
-	print("here 1\n")
-	if !CellsAligned(from, to) {
-		return nil, fmt.Errorf("GetCellBetween : cells [ %s , %s ] are not aligned", from.String(), to.String())
+func cellsAligned(c1, c2 cells.Cell) bool {
+	return c1.X == c2.X || c1.Y == c2.Y || c1.X-c2.X == c1.Y-c2.Y || c1.X-c2.X == c2.Y-c1.Y
+}
+
+// firstPiece returns error if the start and end cells are the same or not aligned
+func firstPiece(start, end cells.Cell, board [][]pieces.Piece) (pieces.Piece, error) {
+	end.MustBeInBoard()
+	start.MustBeInBoard()
+	if start.Equal(end) {
+		return nil, fmt.Errorf("start %s and end %s are the same", end.String(), start.String())
 	}
 
-	print("here 2\n")
-	dx := to.X - from.X
-	dy := to.Y - from.Y
-
-	if dx != 0 {
-		dx = dx / abs(dx) // 1 or -1 to get the propeer direction
+	dir := start.Direction(end)
+	if dir == cells.DirNotAligned {
+		return nil, fmt.Errorf("cells %s and %s are not aligned", start.String(), end.String())
 	}
-	if dy != 0 {
-		dy = dy / abs(dy)
-	}
-
-	ps := []pieces.Piece{}
-
-	print("here 3\n")
-	for x, y := from.X+dx, from.Y+dy; x != to.X || y != to.Y; x, y = x+dx, y+dy {
-		c := types.Cell{X: x, Y: y}
-
-		print("here 4\n")
-		if p := s.white.pieces.FindPieceByPosition(c); p != nil {
-			print("here 5\n")
-			ps = append(ps, p)
-			continue
-		}
-
-		if p := s.black.pieces.FindPieceByPosition(c); p != nil {
-			print("here 6\n")
-			ps = append(ps, p)
+	for x, y := dir.Next(start.X, start.Y); x != end.X || y != end.Y; x, y = dir.Next(x, y) {
+		if piece := board[x][y]; piece != nil {
+			return piece, nil
 		}
 	}
 
 	return nil, nil
 }
 
-func CellsAligned(c1, c2 types.Cell) bool {
-	return c1.X == c2.X || c1.Y == c2.Y || c1.X-c2.X == c1.Y-c2.Y || c1.X-c2.X == c2.Y-c1.Y
-}
-
-func abs(x int8) int8 {
-	if x < 0 {
-		return -x
+func firstBehindTargetFromPov(target, pov cells.Cell, board [][]pieces.Piece) (pieces.Piece, error) {
+	target.MustBeInBoard()
+	pov.MustBeInBoard()
+	if pov.Equal(target) {
+		return nil, fmt.Errorf("target %s and pov %s  are the same", target.String(), pov.String())
 	}
-	return x
+	dir := pov.Direction(target)
+	if dir == cells.DirNotAligned {
+		return nil, fmt.Errorf("cells %s and %s are not aligned", target.String(), pov.String())
+	}
+	for x, y := dir.Next(target.X, target.Y); x >= 0 && y >= 0 && x < 8 && y < 8; x, y = dir.Next(x, y) {
+		if piece := board[x][y]; piece != nil {
+			return piece, nil
+		}
+	}
+
+	return nil, nil
 }
